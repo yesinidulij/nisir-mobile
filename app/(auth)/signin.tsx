@@ -1,0 +1,197 @@
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import Toast from 'react-native-toast-message';
+import { Colors, Spacing, FontSizes, BorderRadius } from '@/constants/Colors';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { useLoginUser } from '@/hooks/mutations/useLoginUser';
+import { ApiError } from '@/lib/api/client';
+
+export default function SignInScreen() {
+  const router = useRouter();
+  const loginMutation = useLoginUser();
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+
+  const validate = () => {
+    const newErrors: typeof errors = {};
+    if (!email.trim()) newErrors.email = 'Email is required';
+    else if (!email.includes('@')) newErrors.email = 'Enter a valid email';
+    if (!password) newErrors.password = 'Password is required';
+    else if (password.length < 6) newErrors.password = 'Password must be at least 6 characters';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSignIn = async () => {
+    if (!validate()) return;
+
+    try {
+      await loginMutation.mutateAsync({ email: email.trim(), password });
+      Toast.show({ type: 'success', text1: 'Welcome back!', text2: 'You have signed in successfully.' });
+      router.replace('/(tabs)');
+    } catch (error) {
+      const message = error instanceof ApiError
+        ? (error.payload as any)?.message || 'Invalid credentials'
+        : 'Something went wrong. Please try again.';
+      Toast.show({ type: 'error', text1: 'Sign In Failed', text2: message });
+    }
+  };
+
+  return (
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.logoIcon}>
+            <Text style={styles.logoText}>N</Text>
+          </View>
+          <Text style={styles.title}>Welcome Back</Text>
+          <Text style={styles.subtitle}>
+            Sign in to your Nisir Chereta account
+          </Text>
+        </View>
+
+        {/* Form */}
+        <View style={styles.form}>
+          <Input
+            label="Email"
+            placeholder="you@example.com"
+            value={email}
+            onChangeText={(text) => {
+              setEmail(text);
+              if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
+            }}
+            error={errors.email}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoComplete="email"
+            leftIcon={<Ionicons name="mail-outline" size={20} color={Colors.gray[400]} />}
+          />
+
+          <Input
+            label="Password"
+            placeholder="Enter your password"
+            value={password}
+            onChangeText={(text) => {
+              setPassword(text);
+              if (errors.password) setErrors((prev) => ({ ...prev, password: undefined }));
+            }}
+            error={errors.password}
+            secureTextEntry={!showPassword}
+            autoCapitalize="none"
+            autoComplete="password"
+            leftIcon={<Ionicons name="lock-closed-outline" size={20} color={Colors.gray[400]} />}
+            rightIcon={
+              <Pressable onPress={() => setShowPassword(!showPassword)}>
+                <Ionicons
+                  name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                  size={20}
+                  color={Colors.gray[400]}
+                />
+              </Pressable>
+            }
+          />
+
+          <Button
+            fullWidth
+            size="lg"
+            onPress={handleSignIn}
+            loading={loginMutation.isPending}
+          >
+            Sign In
+          </Button>
+        </View>
+
+        {/* Footer */}
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>
+            Don't have an account?{' '}
+          </Text>
+          <Pressable onPress={() => router.replace('/(auth)/signup')}>
+            <Text style={styles.footerLink}>Sign Up</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.white,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing['2xl'],
+    paddingBottom: Spacing['5xl'],
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: Spacing['3xl'],
+  },
+  logoIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    backgroundColor: Colors.primary[600],
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.lg,
+  },
+  logoText: {
+    color: Colors.white,
+    fontWeight: '800',
+    fontSize: 28,
+  },
+  title: {
+    fontSize: FontSizes['2xl'],
+    fontWeight: '700',
+    color: Colors.foreground,
+    marginBottom: Spacing.sm,
+  },
+  subtitle: {
+    fontSize: FontSizes.base,
+    color: Colors.mutedForeground,
+  },
+  form: {
+    gap: Spacing.xs,
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: Spacing['2xl'],
+  },
+  footerText: {
+    fontSize: FontSizes.sm,
+    color: Colors.mutedForeground,
+  },
+  footerLink: {
+    fontSize: FontSizes.sm,
+    fontWeight: '600',
+    color: Colors.primary[600],
+  },
+});
