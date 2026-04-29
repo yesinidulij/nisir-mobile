@@ -15,7 +15,7 @@ export const tenderDetailQueryKey = (id: string) => [TENDERS_QUERY_KEY, 'detail'
 
 export const useTenders = <TData = TenderSummary[]>(
   params: TenderListParams,
-  options?: Partial<UseQueryOptions<TenderSummary[], unknown, TData>>,
+  options?: Omit<UseQueryOptions<TenderSummary[], unknown, TData>, 'queryKey'>,
 ) =>
   useQuery<TenderSummary[], unknown, TData>({
     queryKey: tenderListQueryKey(params),
@@ -25,7 +25,7 @@ export const useTenders = <TData = TenderSummary[]>(
 
 export const useSavedTenders = <TData = TenderSummary[]>(
   params: TenderListParams,
-  options?: Partial<UseQueryOptions<TenderSummary[], unknown, TData>>,
+  options?: Omit<UseQueryOptions<TenderSummary[], unknown, TData>, 'queryKey'>,
 ) =>
   useQuery<TenderSummary[], unknown, TData>({
     queryKey: ['saved-tenders', params],
@@ -35,7 +35,7 @@ export const useSavedTenders = <TData = TenderSummary[]>(
 
 export const useTender = <TData = TenderDetail>(
   id: string | undefined,
-  options?: Partial<UseQueryOptions<TenderDetail, unknown, TData>>,
+  options?: Omit<UseQueryOptions<TenderDetail, unknown, TData>, 'queryKey'>,
 ) =>
   useQuery<TenderDetail, unknown, TData>({
     queryKey: id ? tenderDetailQueryKey(id) : [TENDERS_QUERY_KEY, 'detail', '__undefined__'],

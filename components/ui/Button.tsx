@@ -34,8 +34,8 @@ export function Button({
 
   const buttonStyle: ViewStyle[] = [
     styles.base,
-    styles[variant],
-    styles[`size_${size}`],
+    styles[variant as keyof typeof styles],
+    styles[`size_${size}` as keyof typeof styles],
     fullWidth && styles.fullWidth,
     isDisabled && styles.disabled,
     style as ViewStyle,
@@ -64,7 +64,7 @@ export function Button({
       ) : (
         <>
           {icon}
-          <Text style={[styles.text, styles[`text_${size}`], { color: textColor }]}>
+          <Text style={[styles.text, styles[`text_${size}` as keyof typeof styles] as TextStyle, { color: textColor }]}>
             {children}
           </Text>
         </>
@@ -132,4 +132,4 @@ const styles = StyleSheet.create({
   text_lg: {
     fontSize: FontSizes.lg,
   },
-} as Record<string, ViewStyle | TextStyle>);
+});

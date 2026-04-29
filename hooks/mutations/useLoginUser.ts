@@ -10,7 +10,10 @@ export const useLoginUser = (
     mutationFn: loginUser,
     onSuccess: async (data, variables, context) => {
       await persistAuthResponse(data);
-      onSuccess?.(data, variables, context);
+      if (onSuccess) {
+        // @ts-expect-error tanstack query v5 types mismatch
+        onSuccess(data, variables, context);
+      }
     },
     ...restOptions,
   });

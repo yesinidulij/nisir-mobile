@@ -40,7 +40,7 @@ export function Input({
       >
         {leftIcon && <View style={styles.iconLeft}>{leftIcon}</View>}
         <RNTextInput
-          style={[styles.input, leftIcon && styles.inputWithLeftIcon, rightIcon && styles.inputWithRightIcon, style]}
+          style={[styles.input, leftIcon ? styles.inputWithLeftIcon : null, rightIcon ? styles.inputWithRightIcon : null, style]}
           placeholderTextColor={Colors.gray[400]}
           onFocus={(e) => {
             setIsFocused(true);

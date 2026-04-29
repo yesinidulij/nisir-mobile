@@ -61,7 +61,7 @@ export interface TenderSummary {
   comment?: string;
   deadline: Date;
   publishedAt?: Date;
-  closedAt?: string | Date;
+  closedAt?: string | Date | null;
   status: TenderStatus;
   approvalStatus: ApprovalStatus;
   createdBy: User;

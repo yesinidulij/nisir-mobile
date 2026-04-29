@@ -44,8 +44,8 @@ const variantStyles = StyleSheet.create({
 const variantTextStyles = StyleSheet.create({
   default: { color: Colors.gray[700] },
   success: { color: Colors.primary[700] },
-  warning: { color: Colors.yellow[800] as string },
+  warning: { color: Colors.yellow[600] },
   danger: { color: Colors.red[700] },
-  info: { color: Colors.blue[700] as string },
+  info: { color: Colors.blue[600] },
   outline: { color: Colors.gray[600] },
 });
