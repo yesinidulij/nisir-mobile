@@ -7,6 +7,7 @@ import {
   StatusBar,
   Pressable,
   Dimensions,
+  Image,
 } from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
@@ -35,10 +36,11 @@ export default function HomeScreen() {
       {/* Header Bar */}
       <View style={[styles.headerBar, { paddingTop: insets.top + Spacing.sm }]}>
         <View style={styles.logoRow}>
-          <View style={styles.logoIcon}>
-            <Text style={styles.logoText}>N</Text>
-          </View>
-          <Text style={styles.logoTitle}>Nisir Chereta</Text>
+          <Image 
+            source={require('../../assets/images/nisir-chereta-logo-new.png')} 
+            style={styles.logoImage} 
+            resizeMode="contain" 
+          />
         </View>
         {!isAuthenticated ? (
           <Pressable
@@ -181,23 +183,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.sm,
   },
-  logoIcon: {
-    width: 32,
+  logoImage: {
     height: 32,
-    borderRadius: 8,
-    backgroundColor: Colors.primary[600],
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logoText: {
-    color: Colors.white,
-    fontWeight: '800',
-    fontSize: 18,
-  },
-  logoTitle: {
-    fontSize: FontSizes.lg,
-    fontWeight: '700',
-    color: Colors.foreground,
+    width: 140, // Adjust width based on aspect ratio
   },
   signInBtn: {
     paddingHorizontal: Spacing.lg,

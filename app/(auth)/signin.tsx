@@ -7,6 +7,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -63,9 +64,11 @@ export default function SignInScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <View style={styles.logoIcon}>
-            <Text style={styles.logoText}>N</Text>
-          </View>
+          <Image 
+            source={require('../../assets/images/nisir-chereta-logo-new.png')} 
+            style={styles.logoImage} 
+            resizeMode="contain" 
+          />
           <Text style={styles.title}>Welcome Back</Text>
           <Text style={styles.subtitle}>
             Sign in to your Nisir Chereta account
@@ -152,19 +155,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: Spacing['3xl'],
   },
-  logoIcon: {
-    width: 56,
+  logoImage: {
+    width: 180,
     height: 56,
-    borderRadius: 16,
-    backgroundColor: Colors.primary[600],
-    alignItems: 'center',
-    justifyContent: 'center',
     marginBottom: Spacing.lg,
-  },
-  logoText: {
-    color: Colors.white,
-    fontWeight: '800',
-    fontSize: 28,
   },
   title: {
     fontSize: FontSizes['2xl'],

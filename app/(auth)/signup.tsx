@@ -7,6 +7,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -85,6 +86,11 @@ export default function SignUpScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
+          <Image 
+            source={require('../../assets/images/nisir-chereta-logo-new.png')} 
+            style={styles.logoImage} 
+            resizeMode="contain" 
+          />
           <Text style={styles.title}>Create Account</Text>
           <Text style={styles.subtitle}>
             Join Nisir Chereta and start connecting with bidders
@@ -235,7 +241,13 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing['5xl'],
   },
   header: {
+    alignItems: 'center',
     marginBottom: Spacing['2xl'],
+  },
+  logoImage: {
+    width: 180,
+    height: 56,
+    marginBottom: Spacing.lg,
   },
   title: {
     fontSize: FontSizes['2xl'],

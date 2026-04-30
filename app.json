@@ -4,11 +4,11 @@
     "slug": "nisir-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/nisir-icon-circular.png",
     "scheme": "nisir",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/images/splash-icon.png",
+      "image": "./assets/images/nisir-icon-circular.png",
       "resizeMode": "contain",
       "backgroundColor": "#16a34a"
     },
@@ -18,7 +18,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/nisir-icon-circular.png",
         "backgroundColor": "#16a34a"
       },
       "package": "com.nisirchereta.mobile"
@@ -26,7 +26,7 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/nisir-icon-circular.png"
     },
     "plugins": [
       "expo-router",

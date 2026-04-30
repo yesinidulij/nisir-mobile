@@ -30,18 +30,20 @@ const buildUrl = (path: string, baseUrl: string) => {
 };
 
 export const buildQueryString = (params: Record<string, unknown> = {}) => {
-  const searchParams = new URLSearchParams();
+  const parts: string[] = [];
   Object.entries(params).forEach(([key, value]) => {
     if (value === undefined || value === null || value === '') return;
     if (Array.isArray(value)) {
       value.forEach((entry) => {
-        if (entry !== undefined && entry !== null) searchParams.append(key, String(entry));
+        if (entry !== undefined && entry !== null) {
+          parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(String(entry))}`);
+        }
       });
       return;
     }
-    searchParams.set(key, String(value));
+    parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`);
   });
-  const queryString = searchParams.toString();
+  const queryString = parts.join('&');
   return queryString ? `?${queryString}` : '';
 };
 

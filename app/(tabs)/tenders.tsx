@@ -42,8 +42,11 @@ export default function TendersScreen() {
     limit: 50,
   };
 
-  const { data: tenders = [], isLoading, isRefetching, refetch } = useTenders(params);
-
+  const { data: tenders = [], isLoading, isRefetching, refetch, error } = useTenders(params);
+  
+  if (error) {
+    console.error('useTenders error:', error);
+  }
   const onRefresh = useCallback(() => {
     refetch();
   }, [refetch]);
@@ -113,9 +116,11 @@ export default function TendersScreen() {
     return (
       <View style={styles.emptyContainer}>
         <Ionicons name="document-text-outline" size={64} color={Colors.gray[300]} />
-        <Text style={styles.emptyTitle}>No tenders found</Text>
+        <Text style={styles.emptyTitle}>{error ? 'Failed to load tenders' : 'No tenders found'}</Text>
         <Text style={styles.emptyText}>
-          {search
+          {error
+            ? error instanceof Error ? error.message : String(error)
+            : search
             ? `No results for "${search}". Try a different search term.`
             : 'Check back later for new tenders.'}
         </Text>
