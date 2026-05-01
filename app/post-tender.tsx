@@ -1,20 +1,22 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import Toast from 'react-native-toast-message';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import * as DocumentPicker from 'expo-document-picker';
+import * as ImagePicker from 'expo-image-picker';
+import { Stack, useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native';
+import Toast from 'react-native-toast-message';
 
-import { Colors, Spacing, FontSizes, BorderRadius, Shadows } from '@/constants/Colors';
-import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { createTender, fetchCategories } from '@/lib/api/tenders';
+import { Input } from '@/components/ui/Input';
+import { BorderRadius, Colors, FontSizes, Shadows, Spacing } from '@/constants/Colors';
 import { useAuthState } from '@/hooks/useAuthState';
+import { createTender, fetchCategories } from '@/lib/api/tenders';
 
 export default function PostTenderScreen() {
   const router = useRouter();
-  const { isAuthenticated, normalizedRole, isLoading: isAuthLoading } = useAuthState();
+  const { isAuthenticated, normalizedRole, isAdmin, isLoading: isAuthLoading } = useAuthState();
 
   const [formData, setFormData] = useState({
     title: '',
@@ -23,17 +25,20 @@ export default function PostTenderScreen() {
     location: '',
     description: '',
     requirements: '',
-    specifications: '',
     status: 'DRAFT',
+    companyName: '',
+    companyWebsite: '',
   });
-  
+
   const [deadline, setDeadline] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [documents, setDocuments] = useState<DocumentPicker.DocumentPickerAsset[]>([]);
+  const [companyLogo, setCompanyLogo] = useState<ImagePicker.ImagePickerAsset | null>(null);
 
   const { data: categories = [], isLoading: loadingCategories } = useQuery({
     queryKey: ['tenderCategories'],
     queryFn: fetchCategories,
-    enabled: isAuthenticated && normalizedRole === 'COMPANY',
+    enabled: isAuthenticated && (normalizedRole === 'COMPANY' || isAdmin),
   });
 
   const createTenderMutation = useMutation({
@@ -63,7 +68,7 @@ export default function PostTenderScreen() {
     );
   }
 
-  if (!isAuthenticated || normalizedRole !== 'COMPANY') {
+  if (!isAuthenticated || (normalizedRole !== 'COMPANY' && !isAdmin)) {
     return (
       <View style={styles.centered}>
         <Stack.Screen options={{ title: 'Post Tender', headerTitleStyle: { color: Colors.foreground } }} />
@@ -90,6 +95,38 @@ export default function PostTenderScreen() {
     }
   };
 
+  const pickDocuments = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+        multiple: true,
+      });
+
+      if (!result.canceled) {
+        setDocuments((prev) => [...prev, ...result.assets]);
+      }
+    } catch (err) {
+      console.warn(err);
+    }
+  };
+
+  const removeDocument = (index: number) => {
+    setDocuments((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const pickLogo = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      setCompanyLogo(result.assets[0]);
+    }
+  };
+
   const handleSubmit = () => {
     if (!formData.title || !formData.categoryId || !formData.location || !formData.description || !deadline) {
       Toast.show({
@@ -100,17 +137,37 @@ export default function PostTenderScreen() {
       return;
     }
 
-    const payload = {
-      title: formData.title,
-      summary: formData.summary,
-      description: formData.description,
-      categoryId: formData.categoryId,
-      location: formData.location,
-      deadline: deadline.toISOString(),
-      status: formData.status,
-      requirements: formData.requirements ? formData.requirements.split('\n').filter(Boolean) : [],
-      specifications: formData.specifications ? formData.specifications.split('\n').filter(Boolean) : [],
-    };
+    const payload = new FormData();
+    payload.append('title', formData.title);
+    payload.append('summary', formData.summary);
+    payload.append('description', formData.description);
+    payload.append('categoryId', formData.categoryId);
+    payload.append('location', formData.location);
+    payload.append('deadline', deadline.toISOString());
+    payload.append('status', formData.status);
+    
+    const requirements = formData.requirements ? formData.requirements.split('\n').filter(Boolean) : [];
+    payload.append('requirements', JSON.stringify(requirements));
+
+    if (isAdmin) {
+      if (formData.companyName) payload.append('companyName', formData.companyName);
+      if (formData.companyWebsite) payload.append('companyWebsite', formData.companyWebsite);
+      if (companyLogo) {
+        payload.append('companyLogo', {
+          uri: companyLogo.uri,
+          name: companyLogo.fileName || 'logo.jpg',
+          type: companyLogo.mimeType || 'image/jpeg',
+        } as any);
+      }
+    }
+
+    documents.forEach((doc, index) => {
+      payload.append('documents', {
+        uri: doc.uri,
+        name: doc.name,
+        type: doc.mimeType || 'application/octet-stream',
+      } as any);
+    });
 
     createTenderMutation.mutate(payload);
   };
@@ -119,7 +176,7 @@ export default function PostTenderScreen() {
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <Stack.Screen options={{ title: 'Post Tender', headerTitleStyle: { color: Colors.foreground } }} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        
+
         <View style={styles.header}>
           <View style={styles.iconContainer}>
             <Ionicons name="document-text" size={32} color={Colors.primary[600]} />
@@ -130,7 +187,7 @@ export default function PostTenderScreen() {
 
         <View style={styles.formSection}>
           <Text style={styles.sectionTitle}>Basic Information</Text>
-          
+
           <Input
             label="Tender Title *"
             placeholder="e.g. Office Equipment Supply"
@@ -148,7 +205,6 @@ export default function PostTenderScreen() {
             containerStyle={{ height: 80 }}
           />
 
-          {/* Simple Category Picker (In a real app, use a proper Picker component) */}
           <Text style={styles.label}>Category *</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
             {categories.map((c) => (
@@ -206,9 +262,9 @@ export default function PostTenderScreen() {
         </View>
 
         <View style={styles.formSection}>
-          <Text style={styles.sectionTitle}>Requirements & Specifications</Text>
+          <Text style={styles.sectionTitle}>Requirements</Text>
           <Text style={styles.sectionSubtitle}>Enter each item on a new line.</Text>
-          
+
           <Input
             label="Bidder Requirements"
             placeholder="e.g. Must have renewed trade license..."
@@ -218,16 +274,66 @@ export default function PostTenderScreen() {
             numberOfLines={4}
             containerStyle={{ height: 100 }}
           />
+        </View>
 
-          <Input
-            label="Technical Specifications"
-            placeholder="e.g. Intel Core i7, 16GB RAM..."
-            value={formData.specifications}
-            onChangeText={(val) => handleInputChange('specifications', val)}
-            multiline
-            numberOfLines={4}
-            containerStyle={{ height: 100 }}
-          />
+        {isAdmin && (
+          <View style={styles.formSection}>
+            <Text style={styles.sectionTitle}>External Company Information</Text>
+            <Input
+              label="Company Name"
+              placeholder="e.g. Acme Corp"
+              value={formData.companyName}
+              onChangeText={(val) => handleInputChange('companyName', val)}
+            />
+            <Input
+              label="Company Website"
+              placeholder="https://example.com"
+              value={formData.companyWebsite}
+              onChangeText={(val) => handleInputChange('companyWebsite', val)}
+              autoCapitalize="none"
+              keyboardType="url"
+            />
+            
+            <Text style={styles.label}>Company Logo</Text>
+            <TouchableOpacity style={styles.filePickerButton} onPress={pickLogo}>
+              <Ionicons name="image-outline" size={20} color={Colors.primary[600]} />
+              <Text style={styles.filePickerButtonText}>
+                {companyLogo ? 'Change Logo' : 'Upload Logo'}
+              </Text>
+            </TouchableOpacity>
+            {companyLogo && (
+              <View style={styles.logoPreviewContainer}>
+                <Image source={{ uri: companyLogo.uri }} style={styles.logoPreview} />
+                <TouchableOpacity onPress={() => setCompanyLogo(null)}>
+                  <Ionicons name="close-circle" size={24} color={Colors.red[500]} />
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        )}
+
+        <View style={styles.formSection}>
+          <Text style={styles.sectionTitle}>Supporting Documents</Text>
+          <Text style={styles.sectionSubtitle}>PDF, DOC, DOCX (Max 10MB each)</Text>
+          
+          <TouchableOpacity style={styles.filePickerButton} onPress={pickDocuments}>
+            <Ionicons name="cloud-upload-outline" size={20} color={Colors.primary[600]} />
+            <Text style={styles.filePickerButtonText}>Select Documents</Text>
+          </TouchableOpacity>
+
+          {documents.length > 0 && (
+            <View style={styles.documentList}>
+              {documents.map((doc, index) => (
+                <View key={`${doc.name}-${index}`} style={styles.documentItem}>
+                  <Ionicons name="document-text-outline" size={20} color={Colors.gray[600]} />
+                  <Text style={styles.documentName} numberOfLines={1}>{doc.name}</Text>
+                  <TouchableOpacity onPress={() => removeDocument(index)}>
+                    <Ionicons name="trash-outline" size={20} color={Colors.red[500]} />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          )}
         </View>
 
         <Button
@@ -365,7 +471,57 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.base,
     color: Colors.foreground,
   },
+  filePickerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: Spacing.md,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: Colors.primary[600],
+    borderRadius: BorderRadius.lg,
+    backgroundColor: Colors.primary[50],
+    gap: Spacing.sm,
+    marginTop: Spacing.sm,
+  },
+  filePickerButtonText: {
+    color: Colors.primary[700],
+    fontWeight: '600',
+    fontSize: FontSizes.sm,
+  },
+  documentList: {
+    marginTop: Spacing.md,
+    gap: Spacing.sm,
+  },
+  documentItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.md,
+    backgroundColor: Colors.gray[50],
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    gap: Spacing.sm,
+  },
+  documentName: {
+    flex: 1,
+    fontSize: FontSizes.sm,
+    color: Colors.foreground,
+  },
+  logoPreviewContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: Spacing.md,
+    gap: Spacing.md,
+  },
+  logoPreview: {
+    width: 60,
+    height: 60,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.gray[100],
+  },
   submitBtn: {
     marginTop: Spacing.sm,
   },
 });
+
