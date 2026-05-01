@@ -15,6 +15,8 @@ import { Colors, Spacing, FontSizes, BorderRadius, Shadows } from '@/constants/C
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { useTender } from '@/hooks/queries/useTenders';
+import { extractTextFromLexical } from '@/lib/lexical';
+
 
 const formatDate = (date: Date | string | null | undefined) => {
   if (!date) return 'N/A';
@@ -120,8 +122,11 @@ export default function TenderDetailScreen() {
       {/* Description */}
       <Animated.View entering={FadeInDown.delay(300).duration(400)} style={styles.section}>
         <Text style={styles.sectionTitle}>Description</Text>
-        <Text style={styles.descriptionText}>{tender.description}</Text>
+        <Text style={styles.descriptionText}>
+          {extractTextFromLexical(tender.description)}
+        </Text>
       </Animated.View>
+
 
       {/* Requirements */}
       {tender.requirements && tender.requirements.length > 0 && (
