@@ -71,6 +71,50 @@ export default function RootLayout() {
               headerShadowVisible: false,
             }}
           />
+          <Stack.Screen
+            name="post-tender"
+            options={{
+              headerShown: true,
+              headerTitle: 'Post Tender',
+              headerTintColor: '#16a34a',
+              headerBackTitle: 'Back',
+              headerStyle: { backgroundColor: '#fff' },
+              headerShadowVisible: false,
+            }}
+          />
+          <Stack.Screen
+            name="contact"
+            options={{
+              headerShown: true,
+              headerTitle: 'Contact Us',
+              headerTintColor: '#16a34a',
+              headerBackTitle: 'Back',
+              headerStyle: { backgroundColor: '#fff' },
+              headerShadowVisible: false,
+            }}
+          />
+          <Stack.Screen
+            name="faq"
+            options={{
+              headerShown: true,
+              headerTitle: 'FAQ',
+              headerTintColor: '#16a34a',
+              headerBackTitle: 'Back',
+              headerStyle: { backgroundColor: '#fff' },
+              headerShadowVisible: false,
+            }}
+          />
+          <Stack.Screen
+            name="blog"
+            options={{
+              headerShown: true,
+              headerTitle: 'Blog',
+              headerTintColor: '#16a34a',
+              headerBackTitle: 'Back',
+              headerStyle: { backgroundColor: '#fff' },
+              headerShadowVisible: false,
+            }}
+          />
         </Stack>
         <Toast />
       </ThemeProvider>

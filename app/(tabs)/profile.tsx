@@ -122,9 +122,14 @@ export default function ProfileScreen() {
         <Text style={styles.menuSectionTitle}>General</Text>
 
         <MenuItem
+          icon="newspaper-outline"
+          label="Blog"
+          onPress={() => router.push('/blog')}
+        />
+        <MenuItem
           icon="help-circle-outline"
           label="FAQ"
-          onPress={() => {}}
+          onPress={() => router.push('/faq')}
         />
         <MenuItem
           icon="information-circle-outline"
@@ -144,7 +149,7 @@ export default function ProfileScreen() {
         <MenuItem
           icon="mail-outline"
           label="Contact Us"
-          onPress={() => {}}
+          onPress={() => router.push('/contact')}
         />
       </View>
 

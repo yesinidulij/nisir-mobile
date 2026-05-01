@@ -17,6 +17,7 @@ interface ButtonProps extends PressableProps {
   loading?: boolean;
   fullWidth?: boolean;
   icon?: React.ReactNode;
+  textStyle?: TextStyle;
 }
 
 export function Button({
@@ -26,6 +27,7 @@ export function Button({
   loading = false,
   fullWidth = false,
   icon,
+  textStyle,
   disabled,
   style,
   ...props
@@ -64,7 +66,7 @@ export function Button({
       ) : (
         <>
           {icon}
-          <Text style={[styles.text, styles[`text_${size}` as keyof typeof styles] as TextStyle, { color: textColor }]}>
+          <Text style={[styles.text, styles[`text_${size}` as keyof typeof styles] as TextStyle, { color: textColor }, textStyle]}>
             {children}
           </Text>
         </>

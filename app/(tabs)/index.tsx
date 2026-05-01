@@ -72,7 +72,7 @@ export default function HomeScreen() {
           <Button
             size="lg"
             fullWidth
-            onPress={() => isAuthenticated ? router.push('/(tabs)/tenders') : router.push('/(auth)/signin')}
+            onPress={() => isAuthenticated ? router.push('/post-tender') : router.push('/(auth)/signin')}
           >
             Post Tender
           </Button>

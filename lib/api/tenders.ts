@@ -155,3 +155,20 @@ export async function saveTenderApi(id: string): Promise<void> {
 export async function unsaveTenderApi(id: string): Promise<void> {
   await apiFetch(`/tender/save/${encodeURIComponent(id)}`, { method: 'DELETE' });
 }
+
+export const fetchCategories = async (): Promise<TenderCategory[]> => {
+  const response = await apiFetch<TenderCategory[]>(`/tender-category`);
+  return Array.isArray(response) ? response : [];
+};
+
+export const createTender = async (data: any): Promise<TenderDetail> => {
+  // Use FormData if there are files (like documents, logo)
+  const isFormData = data instanceof FormData;
+  const options = {
+    method: 'POST',
+    body: isFormData ? data : JSON.stringify(data),
+  };
+  const response = await apiFetch<TenderDetailResponse>(`/tender`, options);
+  return toTenderDetail(response);
+};
+
