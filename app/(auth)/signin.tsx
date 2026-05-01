@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   Platform,
   Pressable,
   Image,
+  TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -21,6 +22,7 @@ import { ApiError } from '@/lib/api/client';
 export default function SignInScreen() {
   const router = useRouter();
   const loginMutation = useLoginUser();
+  const passwordRef = useRef<TextInput>(null);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -52,92 +54,103 @@ export default function SignInScreen() {
     }
   };
 
-  return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+  const content = (
+    <ScrollView
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
     >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <Image 
-            source={require('../../assets/images/nisir-chereta-logo-new.png')} 
-            style={styles.logoImage} 
-            resizeMode="contain" 
-          />
-          <Text style={styles.title}>Welcome Back</Text>
-          <Text style={styles.subtitle}>
-            Sign in to your Nisir Chereta account
-          </Text>
-        </View>
+      {/* Header */}
+      <View style={styles.header}>
+        <Image 
+          source={require('../../assets/images/nisir-chereta-logo-new.png')} 
+          style={styles.logoImage} 
+          resizeMode="contain" 
+        />
+        <Text style={styles.title}>Welcome Back</Text>
+        <Text style={styles.subtitle}>
+          Sign in to your Nisir Chereta account
+        </Text>
+      </View>
 
-        {/* Form */}
-        <View style={styles.form}>
-          <Input
-            label="Email"
-            placeholder="you@example.com"
-            value={email}
-            onChangeText={(text) => {
-              setEmail(text);
-              if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
-            }}
-            error={errors.email}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoComplete="email"
-            leftIcon={<Ionicons name="mail-outline" size={20} color={Colors.gray[400]} />}
-          />
+      {/* Form */}
+      <View style={styles.form}>
+        <Input
+          label="Email"
+          placeholder="you@example.com"
+          value={email}
+          onChangeText={(text) => {
+            setEmail(text);
+            if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
+          }}
+          error={errors.email}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoComplete="email"
+          returnKeyType="next"
+          onSubmitEditing={() => passwordRef.current?.focus()}
+          leftIcon={<Ionicons name="mail-outline" size={20} color={Colors.gray[400]} />}
+        />
 
-          <Input
-            label="Password"
-            placeholder="Enter your password"
-            value={password}
-            onChangeText={(text) => {
-              setPassword(text);
-              if (errors.password) setErrors((prev) => ({ ...prev, password: undefined }));
-            }}
-            error={errors.password}
-            secureTextEntry={!showPassword}
-            autoCapitalize="none"
-            autoComplete="password"
-            leftIcon={<Ionicons name="lock-closed-outline" size={20} color={Colors.gray[400]} />}
-            rightIcon={
-              <Pressable onPress={() => setShowPassword(!showPassword)}>
-                <Ionicons
-                  name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                  size={20}
-                  color={Colors.gray[400]}
-                />
-              </Pressable>
-            }
-          />
+        <Input
+          ref={passwordRef}
+          label="Password"
+          placeholder="Enter your password"
+          value={password}
+          onChangeText={(text) => {
+            setPassword(text);
+            if (errors.password) setErrors((prev) => ({ ...prev, password: undefined }));
+          }}
+          error={errors.password}
+          secureTextEntry={!showPassword}
+          autoCapitalize="none"
+          autoComplete="password"
+          returnKeyType="done"
+          blurOnSubmit={true}
+          onSubmitEditing={handleSignIn}
+          leftIcon={<Ionicons name="lock-closed-outline" size={20} color={Colors.gray[400]} />}
+          rightIcon={
+            <Pressable onPress={() => setShowPassword(!showPassword)}>
+              <Ionicons
+                name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                size={20}
+                color={Colors.gray[400]}
+              />
+            </Pressable>
+          }
+        />
 
-          <Button
-            fullWidth
-            size="lg"
-            onPress={handleSignIn}
-            loading={loginMutation.isPending}
-          >
-            Sign In
-          </Button>
-        </View>
+        <Button
+          fullWidth
+          size="lg"
+          onPress={handleSignIn}
+          loading={loginMutation.isPending}
+        >
+          Sign In
+        </Button>
+      </View>
 
-        {/* Footer */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            Don't have an account?{' '}
-          </Text>
-          <Pressable onPress={() => router.replace('/(auth)/signup')}>
-            <Text style={styles.footerLink}>Sign Up</Text>
-          </Pressable>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      {/* Footer */}
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>
+          Don't have an account?{' '}
+        </Text>
+        <Pressable onPress={() => router.replace('/(auth)/signup')}>
+          <Text style={styles.footerLink}>Sign Up</Text>
+        </Pressable>
+      </View>
+    </ScrollView>
   );
+
+  if (Platform.OS === 'ios') {
+    return (
+      <KeyboardAvoidingView style={styles.container} behavior="padding">
+        {content}
+      </KeyboardAvoidingView>
+    );
+  }
+
+  return <View style={styles.container}>{content}</View>;
 }
 
 const styles = StyleSheet.create({

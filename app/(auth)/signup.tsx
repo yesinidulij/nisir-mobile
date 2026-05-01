@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   Platform,
   Pressable,
   Image,
+  TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -23,6 +24,12 @@ type AccountType = 'COMPANY' | 'INDIVIDUAL';
 export default function SignUpScreen() {
   const router = useRouter();
   const registerMutation = useRegisterUser();
+
+  const lastNameRef = useRef<TextInput>(null);
+  const emailRef = useRef<TextInput>(null);
+  const phoneRef = useRef<TextInput>(null);
+  const passwordRef = useRef<TextInput>(null);
+  const confirmPasswordRef = useRef<TextInput>(null);
 
   const [accountType, setAccountType] = useState<AccountType>('COMPANY');
   const [firstName, setFirstName] = useState('');
@@ -74,159 +81,182 @@ export default function SignUpScreen() {
     }
   };
 
-  return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+  const content = (
+    <ScrollView
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
     >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <Image 
-            source={require('../../assets/images/nisir-chereta-logo-new.png')} 
-            style={styles.logoImage} 
-            resizeMode="contain" 
+      {/* Header */}
+      <View style={styles.header}>
+        <Image 
+          source={require('../../assets/images/nisir-chereta-logo-new.png')} 
+          style={styles.logoImage} 
+          resizeMode="contain" 
+        />
+        <Text style={styles.title}>Create Account</Text>
+        <Text style={styles.subtitle}>
+          Join Nisir Chereta and start connecting with bidders
+        </Text>
+      </View>
+
+      {/* Account Type Toggle */}
+      <View style={styles.typeToggle}>
+        <Pressable
+          style={[styles.typeOption, accountType === 'COMPANY' && styles.typeOptionActive]}
+          onPress={() => setAccountType('COMPANY')}
+        >
+          <Ionicons
+            name="business-outline"
+            size={20}
+            color={accountType === 'COMPANY' ? Colors.white : Colors.gray[600]}
           />
-          <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>
-            Join Nisir Chereta and start connecting with bidders
+          <Text style={[styles.typeText, accountType === 'COMPANY' && styles.typeTextActive]}>
+            Company
           </Text>
-        </View>
+        </Pressable>
+        <Pressable
+          style={[styles.typeOption, accountType === 'INDIVIDUAL' && styles.typeOptionActive]}
+          onPress={() => setAccountType('INDIVIDUAL')}
+        >
+          <Ionicons
+            name="person-outline"
+            size={20}
+            color={accountType === 'INDIVIDUAL' ? Colors.white : Colors.gray[600]}
+          />
+          <Text style={[styles.typeText, accountType === 'INDIVIDUAL' && styles.typeTextActive]}>
+            Individual
+          </Text>
+        </Pressable>
+      </View>
 
-        {/* Account Type Toggle */}
-        <View style={styles.typeToggle}>
-          <Pressable
-            style={[styles.typeOption, accountType === 'COMPANY' && styles.typeOptionActive]}
-            onPress={() => setAccountType('COMPANY')}
-          >
-            <Ionicons
-              name="business-outline"
-              size={20}
-              color={accountType === 'COMPANY' ? Colors.white : Colors.gray[600]}
+      {/* Form */}
+      <View style={styles.form}>
+        <View style={styles.row}>
+          <View style={styles.halfField}>
+            <Input
+              label="First Name"
+              placeholder="John"
+              value={firstName}
+              onChangeText={(t) => { setFirstName(t); clearError('firstName'); }}
+              error={errors.firstName}
+              autoCapitalize="words"
+              returnKeyType="next"
+              onSubmitEditing={() => lastNameRef.current?.focus()}
             />
-            <Text style={[styles.typeText, accountType === 'COMPANY' && styles.typeTextActive]}>
-              Company
-            </Text>
-          </Pressable>
-          <Pressable
-            style={[styles.typeOption, accountType === 'INDIVIDUAL' && styles.typeOptionActive]}
-            onPress={() => setAccountType('INDIVIDUAL')}
-          >
-            <Ionicons
-              name="person-outline"
-              size={20}
-              color={accountType === 'INDIVIDUAL' ? Colors.white : Colors.gray[600]}
-            />
-            <Text style={[styles.typeText, accountType === 'INDIVIDUAL' && styles.typeTextActive]}>
-              Individual
-            </Text>
-          </Pressable>
-        </View>
-
-        {/* Form */}
-        <View style={styles.form}>
-          <View style={styles.row}>
-            <View style={styles.halfField}>
-              <Input
-                label="First Name"
-                placeholder="John"
-                value={firstName}
-                onChangeText={(t) => { setFirstName(t); clearError('firstName'); }}
-                error={errors.firstName}
-                autoCapitalize="words"
-              />
-            </View>
-            <View style={styles.halfField}>
-              <Input
-                label="Last Name"
-                placeholder="Doe"
-                value={lastName}
-                onChangeText={(t) => { setLastName(t); clearError('lastName'); }}
-                error={errors.lastName}
-                autoCapitalize="words"
-              />
-            </View>
           </View>
-
-          <Input
-            label="Email"
-            placeholder="you@example.com"
-            value={email}
-            onChangeText={(t) => { setEmail(t); clearError('email'); }}
-            error={errors.email}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoComplete="email"
-            leftIcon={<Ionicons name="mail-outline" size={20} color={Colors.gray[400]} />}
-          />
-
-          <Input
-            label="Phone Number"
-            placeholder="0912345678"
-            value={phone}
-            onChangeText={(t) => { setPhone(t); clearError('phone'); }}
-            error={errors.phone}
-            keyboardType="phone-pad"
-            leftIcon={<Ionicons name="call-outline" size={20} color={Colors.gray[400]} />}
-          />
-
-          <Input
-            label="Password"
-            placeholder="Min. 6 characters"
-            value={password}
-            onChangeText={(t) => { setPassword(t); clearError('password'); }}
-            error={errors.password}
-            secureTextEntry={!showPassword}
-            autoCapitalize="none"
-            leftIcon={<Ionicons name="lock-closed-outline" size={20} color={Colors.gray[400]} />}
-            rightIcon={
-              <Pressable onPress={() => setShowPassword(!showPassword)}>
-                <Ionicons
-                  name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                  size={20}
-                  color={Colors.gray[400]}
-                />
-              </Pressable>
-            }
-          />
-
-          <Input
-            label="Confirm Password"
-            placeholder="Re-enter password"
-            value={confirmPassword}
-            onChangeText={(t) => { setConfirmPassword(t); clearError('confirmPassword'); }}
-            error={errors.confirmPassword}
-            secureTextEntry={!showPassword}
-            autoCapitalize="none"
-            leftIcon={<Ionicons name="lock-closed-outline" size={20} color={Colors.gray[400]} />}
-          />
-
-          <Button
-            fullWidth
-            size="lg"
-            onPress={handleSignUp}
-            loading={registerMutation.isPending}
-          >
-            Create Account
-          </Button>
+          <View style={styles.halfField}>
+            <Input
+              ref={lastNameRef}
+              label="Last Name"
+              placeholder="Doe"
+              value={lastName}
+              onChangeText={(t) => { setLastName(t); clearError('lastName'); }}
+              error={errors.lastName}
+              autoCapitalize="words"
+              returnKeyType="next"
+              onSubmitEditing={() => emailRef.current?.focus()}
+            />
+          </View>
         </View>
 
-        {/* Footer */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            Already have an account?{' '}
-          </Text>
-          <Pressable onPress={() => router.replace('/(auth)/signin')}>
-            <Text style={styles.footerLink}>Sign In</Text>
-          </Pressable>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        <Input
+          ref={emailRef}
+          label="Email"
+          placeholder="you@example.com"
+          value={email}
+          onChangeText={(t) => { setEmail(t); clearError('email'); }}
+          error={errors.email}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoComplete="email"
+          returnKeyType="next"
+          onSubmitEditing={() => phoneRef.current?.focus()}
+          leftIcon={<Ionicons name="mail-outline" size={20} color={Colors.gray[400]} />}
+        />
+
+        <Input
+          ref={phoneRef}
+          label="Phone Number"
+          placeholder="0912345678"
+          value={phone}
+          onChangeText={(t) => { setPhone(t); clearError('phone'); }}
+          error={errors.phone}
+          keyboardType="phone-pad"
+          returnKeyType="next"
+          onSubmitEditing={() => passwordRef.current?.focus()}
+          leftIcon={<Ionicons name="call-outline" size={20} color={Colors.gray[400]} />}
+        />
+
+        <Input
+          ref={passwordRef}
+          label="Password"
+          placeholder="Min. 6 characters"
+          value={password}
+          onChangeText={(t) => { setPassword(t); clearError('password'); }}
+          error={errors.password}
+          secureTextEntry={!showPassword}
+          autoCapitalize="none"
+          returnKeyType="next"
+          onSubmitEditing={() => confirmPasswordRef.current?.focus()}
+          leftIcon={<Ionicons name="lock-closed-outline" size={20} color={Colors.gray[400]} />}
+          rightIcon={
+            <Pressable onPress={() => setShowPassword(!showPassword)}>
+              <Ionicons
+                name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                size={20}
+                color={Colors.gray[400]}
+              />
+            </Pressable>
+          }
+        />
+
+        <Input
+          ref={confirmPasswordRef}
+          label="Confirm Password"
+          placeholder="Re-enter password"
+          value={confirmPassword}
+          onChangeText={(t) => { setConfirmPassword(t); clearError('confirmPassword'); }}
+          error={errors.confirmPassword}
+          secureTextEntry={!showPassword}
+          autoCapitalize="none"
+          returnKeyType="done"
+          blurOnSubmit={true}
+          onSubmitEditing={handleSignUp}
+          leftIcon={<Ionicons name="lock-closed-outline" size={20} color={Colors.gray[400]} />}
+        />
+
+        <Button
+          fullWidth
+          size="lg"
+          onPress={handleSignUp}
+          loading={registerMutation.isPending}
+        >
+          Create Account
+        </Button>
+      </View>
+
+      {/* Footer */}
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>
+          Already have an account?{' '}
+        </Text>
+        <Pressable onPress={() => router.replace('/(auth)/signin')}>
+          <Text style={styles.footerLink}>Sign In</Text>
+        </Pressable>
+      </View>
+    </ScrollView>
   );
+
+  if (Platform.OS === 'ios') {
+    return (
+      <KeyboardAvoidingView style={styles.container} behavior="padding">
+        {content}
+      </KeyboardAvoidingView>
+    );
+  }
+
+  return <View style={styles.container}>{content}</View>;
 }
 
 const styles = StyleSheet.create({

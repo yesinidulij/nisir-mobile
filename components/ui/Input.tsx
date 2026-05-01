@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { forwardRef, useState } from 'react';
 import {
   TextInput as RNTextInput,
   View,
@@ -17,15 +17,18 @@ interface InputProps extends RNTextInputProps {
   rightIcon?: React.ReactNode;
 }
 
-export function Input({
-  label,
-  error,
-  containerStyle,
-  leftIcon,
-  rightIcon,
-  style,
-  ...props
-}: InputProps) {
+export const Input = forwardRef<RNTextInput, InputProps>(function Input(
+  {
+    label,
+    error,
+    containerStyle,
+    leftIcon,
+    rightIcon,
+    style,
+    ...props
+  },
+  ref
+) {
   const [isFocused, setIsFocused] = useState(false);
 
   return (
@@ -40,6 +43,9 @@ export function Input({
       >
         {leftIcon && <View style={styles.iconLeft}>{leftIcon}</View>}
         <RNTextInput
+          ref={ref}
+          blurOnSubmit={false}
+          {...props}
           style={[styles.input, leftIcon ? styles.inputWithLeftIcon : null, rightIcon ? styles.inputWithRightIcon : null, style]}
           placeholderTextColor={Colors.gray[400]}
           onFocus={(e) => {
@@ -50,14 +56,13 @@ export function Input({
             setIsFocused(false);
             props.onBlur?.(e);
           }}
-          {...props}
         />
         {rightIcon && <View style={styles.iconRight}>{rightIcon}</View>}
       </View>
       {error && <Text style={styles.errorText}>{error}</Text>}
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {
@@ -80,11 +85,7 @@ const styles = StyleSheet.create({
   },
   inputFocused: {
     borderColor: Colors.primary[500],
-    shadowColor: Colors.primary[500],
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 2,
+    backgroundColor: Colors.white,
   },
   inputError: {
     borderColor: Colors.red[500],
