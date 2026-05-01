@@ -10,6 +10,7 @@ import Toast from 'react-native-toast-message';
 
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
 import { BorderRadius, Colors, FontSizes, Shadows, Spacing } from '@/constants/Colors';
 import { useAuthState } from '@/hooks/useAuthState';
 import { createTender, fetchCategories } from '@/lib/api/tenders';
@@ -205,24 +206,13 @@ export default function PostTenderScreen() {
             containerStyle={{ height: 80 }}
           />
 
-          <Text style={styles.label}>Category *</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
-            {categories.map((c) => (
-              <TouchableOpacity
-                key={c.id}
-                style={[
-                  styles.categoryChip,
-                  formData.categoryId === c.id && styles.categoryChipActive
-                ]}
-                onPress={() => handleInputChange('categoryId', c.id)}
-              >
-                <Text style={[
-                  styles.categoryChipText,
-                  formData.categoryId === c.id && styles.categoryChipTextActive
-                ]}>{c.category}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+          <Select
+            label="Category *"
+            placeholder="Select a category"
+            options={categories}
+            value={formData.categoryId}
+            onValueChange={(val) => handleInputChange('categoryId', val)}
+          />
 
           <Input
             label="Location *"
@@ -429,31 +419,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.foreground,
     marginBottom: Spacing.xs,
-  },
-  categoryScroll: {
-    flexDirection: 'row',
-    marginBottom: Spacing.lg,
-  },
-  categoryChip: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.full,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.white,
-    marginRight: Spacing.sm,
-  },
-  categoryChipActive: {
-    backgroundColor: Colors.primary[600],
-    borderColor: Colors.primary[600],
-  },
-  categoryChipText: {
-    fontSize: FontSizes.sm,
-    color: Colors.gray[600],
-  },
-  categoryChipTextActive: {
-    color: Colors.white,
-    fontWeight: '600',
   },
   dateContainer: {
     marginBottom: Spacing.md,

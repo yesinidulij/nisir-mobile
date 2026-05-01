@@ -156,9 +156,30 @@ export async function unsaveTenderApi(id: string): Promise<void> {
   await apiFetch(`/tender/save/${encodeURIComponent(id)}`, { method: 'DELETE' });
 }
 
+const isCategoryArray = (value: unknown): value is TenderCategory[] =>
+  Array.isArray(value) &&
+  value.every((v) => v && typeof v === 'object' && ('id' in (v as any) || 'category' in (v as any)));
+
+const toCategoryArray = (response: any): TenderCategory[] =>
+  findNestedValue(response, isCategoryArray, LIST_CANDIDATE_KEYS) ?? [];
+
 export const fetchCategories = async (): Promise<TenderCategory[]> => {
-  const response = await apiFetch<TenderCategory[]>(`/tender-category`);
-  return Array.isArray(response) ? response : [];
+  try {
+    const response = await apiFetch<any>(`/lookup/tender-categories?page=1&limit=100`);
+    const categories = toCategoryArray(response);
+
+    // Basic normalization to match the interface
+    return categories.map((c) => ({
+      id: String((c as any).id ?? (c as any).category ?? ''),
+      category: String((c as any).category ?? (c as any).id ?? ''),
+      description: (c as any).description ?? '',
+      createdAt: (c as any).createdAt ? new Date((c as any).createdAt) : new Date(),
+      updatedAt: (c as any).updatedAt ? new Date((c as any).updatedAt) : new Date(),
+    }));
+  } catch (err) {
+    console.error('[fetchCategories] failed:', err);
+    return [];
+  }
 };
 
 export const createTender = async (data: any): Promise<TenderDetail> => {
