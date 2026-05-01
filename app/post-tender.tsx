@@ -10,7 +10,7 @@ import Toast from 'react-native-toast-message';
 
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Select } from '@/components/ui/Select';
+import { FormSelect } from '@/components/ui/Select';
 import { BorderRadius, Colors, FontSizes, Shadows, Spacing } from '@/constants/Colors';
 import { useAuthState } from '@/hooks/useAuthState';
 import { createTender, fetchCategories } from '@/lib/api/tenders';
@@ -239,7 +239,7 @@ export default function PostTenderScreen() {
             error={errors.summary}
           />
 
-          <Select
+          <FormSelect
             label="Category *"
             placeholder="Select a category"
             options={categories}

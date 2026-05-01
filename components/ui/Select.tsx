@@ -26,7 +26,7 @@ interface SelectProps {
   error?: string;
 }
 
-export const Select: React.FC<SelectProps> = ({
+export const FormSelect: React.FC<SelectProps> = ({
   label,
   placeholder = 'Select an option',
   options,
