@@ -38,7 +38,7 @@ export const useAuthState = () => {
       ...snapshot,
       role,
       normalizedRole,
-      isAuthenticated: Boolean(snapshot.user),
+      isAuthenticated: Boolean(snapshot.user || snapshot.accessToken),
       isCompany: normalizedRole === 'COMPANY',
       isIndividual: normalizedRole === 'INDIVIDUAL',
       isAdmin: normalizedRole === 'ADMIN',

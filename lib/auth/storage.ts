@@ -41,7 +41,7 @@ const USER_FULL_NAME_KEYS = ['fullName', 'fullname', 'name', 'displayName'] as c
 const ACCESS_TOKEN_KEYS = ['accessToken', 'access_token', 'token', 'jwt', 'jwtToken'] as const;
 const REFRESH_TOKEN_KEYS = ['refreshToken', 'refresh_token'] as const;
 const EMAIL_KEYS = ['email', 'emailAddress', 'email_address'] as const;
-const USER_CONTAINER_KEYS = ['user', 'profile', 'account', 'member', 'customer'] as const;
+const USER_CONTAINER_KEYS = ['user', 'profile', 'account', 'member', 'customer', 'data', 'payload', 'result'] as const;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
@@ -119,6 +119,16 @@ const deriveAuthStateFromResponse = (value: unknown): AuthState => {
     for (const key of keys) {
       const val = getString(obj[key]);
       if (val) return val;
+    }
+    // Check in common wrappers
+    for (const wrapper of ['data', 'payload', 'result']) {
+      const wrapped = obj[wrapper];
+      if (isRecord(wrapped)) {
+        for (const key of keys) {
+          const val = getString(wrapped[key]);
+          if (val) return val;
+        }
+      }
     }
     return undefined;
   };
