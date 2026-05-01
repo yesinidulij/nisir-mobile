@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery } from '@tanstack/react-query';
@@ -14,7 +14,7 @@ import { useAuthState } from '@/hooks/useAuthState';
 
 export default function PostTenderScreen() {
   const router = useRouter();
-  const { isAuthenticated, normalizedRole } = useAuthState();
+  const { isAuthenticated, normalizedRole, isLoading: isAuthLoading } = useAuthState();
 
   const [formData, setFormData] = useState({
     title: '',
@@ -33,6 +33,7 @@ export default function PostTenderScreen() {
   const { data: categories = [], isLoading: loadingCategories } = useQuery({
     queryKey: ['tenderCategories'],
     queryFn: fetchCategories,
+    enabled: isAuthenticated && normalizedRole === 'COMPANY',
   });
 
   const createTenderMutation = useMutation({
@@ -53,6 +54,14 @@ export default function PostTenderScreen() {
       });
     },
   });
+
+  if (isAuthLoading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color={Colors.primary[600]} />
+      </View>
+    );
+  }
 
   if (!isAuthenticated || normalizedRole !== 'COMPANY') {
     return (

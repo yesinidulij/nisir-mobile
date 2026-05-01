@@ -1,19 +1,19 @@
-import React from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  Pressable,
-  Alert,
-} from 'react-native';
+import { Button } from '@/components/ui/Button';
+import { BorderRadius, Colors, FontSizes, Spacing } from '@/constants/Colors';
+import { useLogout } from '@/hooks/mutations/useLogout';
+import { useAuthState } from '@/hooks/useAuthState';
+import { getUserFullName } from '@/lib/auth/storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { Colors, Spacing, FontSizes, BorderRadius, Shadows } from '@/constants/Colors';
-import { Button } from '@/components/ui/Button';
-import { useAuthState } from '@/hooks/useAuthState';
-import { useLogout } from '@/hooks/mutations/useLogout';
-import { getUserFullName } from '@/lib/auth/storage';
+import React from 'react';
+import {
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -97,7 +97,7 @@ export default function ProfileScreen() {
         <MenuItem
           icon="person-outline"
           label="Edit Profile"
-          onPress={() => {}}
+          onPress={() => { }}
         />
         <MenuItem
           icon="bookmark-outline"
@@ -108,16 +108,16 @@ export default function ProfileScreen() {
           <MenuItem
             icon="briefcase-outline"
             label="My Tenders"
-            onPress={() => {}}
+            onPress={() => { }}
           />
         )}
         <MenuItem
           icon="chatbubbles-outline"
           label="Messages"
-          onPress={() => {}}
+          onPress={() => { }}
         />
       </View>
-
+      {/* 
       <View style={styles.menuSection}>
         <Text style={styles.menuSectionTitle}>General</Text>
 
@@ -130,7 +130,7 @@ export default function ProfileScreen() {
           icon="help-circle-outline"
           label="FAQ"
           onPress={() => router.push('/faq')}
-        />
+        /> 
         <MenuItem
           icon="information-circle-outline"
           label="About Nisir"
@@ -150,9 +150,9 @@ export default function ProfileScreen() {
           icon="mail-outline"
           label="Contact Us"
           onPress={() => router.push('/contact')}
-        />
+        /> 
       </View>
-
+ */}
       {/* Sign Out */}
       <View style={styles.signOutSection}>
         <Button
