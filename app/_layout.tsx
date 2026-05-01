@@ -7,7 +7,6 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 import Toast from 'react-native-toast-message';
-import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -33,11 +32,7 @@ const NisirTheme = {
   },
 };
 
-
 export default function RootLayout() {
-  // Initialize Push Notifications
-  usePushNotifications();
-
   const [loaded, error] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     ...FontAwesome.font,
