@@ -14,6 +14,7 @@ import { Select } from '@/components/ui/Select';
 import { BorderRadius, Colors, FontSizes, Shadows, Spacing } from '@/constants/Colors';
 import { useAuthState } from '@/hooks/useAuthState';
 import { createTender, fetchCategories } from '@/lib/api/tenders';
+import { createTenderSchema } from '@/lib/validation/tenders';
 
 export default function PostTenderScreen() {
   const router = useRouter();
@@ -35,6 +36,7 @@ export default function PostTenderScreen() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [documents, setDocuments] = useState<DocumentPicker.DocumentPickerAsset[]>([]);
   const [companyLogo, setCompanyLogo] = useState<ImagePicker.ImagePickerAsset | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const { data: categories = [], isLoading: loadingCategories } = useQuery({
     queryKey: ['tenderCategories'],
@@ -87,12 +89,26 @@ export default function PostTenderScreen() {
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
   };
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
     setShowDatePicker(Platform.OS === 'ios');
     if (selectedDate) {
       setDeadline(selectedDate);
+      if (errors.deadline) {
+        setErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors.deadline;
+          return newErrors;
+        });
+      }
     }
   };
 
@@ -129,30 +145,45 @@ export default function PostTenderScreen() {
   };
 
   const handleSubmit = () => {
-    if (!formData.title || !formData.categoryId || !formData.location || !formData.description || !deadline) {
+    const validationData = {
+      ...formData,
+      deadline: deadline,
+      requirements: formData.requirements ? formData.requirements.split('\n').filter(Boolean) : [],
+    };
+
+    const validationResult = createTenderSchema.safeParse(validationData);
+
+    if (!validationResult.success) {
+      const fieldErrors: Record<string, string> = {};
+      validationResult.error.issues.forEach((issue) => {
+        if (issue.path[0]) {
+          fieldErrors[issue.path[0] as string] = issue.message;
+        }
+      });
+      setErrors(fieldErrors);
       Toast.show({
         type: 'error',
-        text1: 'Missing Fields',
-        text2: 'Please fill in all required fields (Title, Category, Location, Description, Deadline).',
+        text1: 'Validation Error',
+        text2: 'Please fix the highlighted errors.',
       });
       return;
     }
 
     const payload = new FormData();
-    payload.append('title', formData.title);
-    payload.append('summary', formData.summary);
-    payload.append('description', formData.description);
-    payload.append('categoryId', formData.categoryId);
-    payload.append('location', formData.location);
-    payload.append('deadline', deadline.toISOString());
-    payload.append('status', formData.status);
-    
-    const requirements = formData.requirements ? formData.requirements.split('\n').filter(Boolean) : [];
-    payload.append('requirements', JSON.stringify(requirements));
+    const data = validationResult.data;
+
+    payload.append('title', data.title as string);
+    payload.append('summary', (data.summary as string) || '');
+    payload.append('description', data.description as string);
+    payload.append('categoryId', data.categoryId as string);
+    payload.append('location', data.location as string);
+    payload.append('deadline', data.deadline.toISOString());
+    payload.append('status', data.status);
+    payload.append('requirements', JSON.stringify(data.requirements));
 
     if (isAdmin) {
-      if (formData.companyName) payload.append('companyName', formData.companyName);
-      if (formData.companyWebsite) payload.append('companyWebsite', formData.companyWebsite);
+      if (data.companyName) payload.append('companyName', data.companyName);
+      if (data.companyWebsite) payload.append('companyWebsite', data.companyWebsite);
       if (companyLogo) {
         payload.append('companyLogo', {
           uri: companyLogo.uri,
@@ -194,6 +225,7 @@ export default function PostTenderScreen() {
             placeholder="e.g. Office Equipment Supply"
             value={formData.title}
             onChangeText={(val) => handleInputChange('title', val)}
+            error={errors.title}
           />
 
           <Input
@@ -204,6 +236,7 @@ export default function PostTenderScreen() {
             multiline
             numberOfLines={3}
             containerStyle={{ height: 80 }}
+            error={errors.summary}
           />
 
           <Select
@@ -212,6 +245,7 @@ export default function PostTenderScreen() {
             options={categories}
             value={formData.categoryId}
             onValueChange={(val) => handleInputChange('categoryId', val)}
+            error={errors.categoryId}
           />
 
           <Input
@@ -219,16 +253,21 @@ export default function PostTenderScreen() {
             placeholder="e.g. Addis Ababa, Ethiopia"
             value={formData.location}
             onChangeText={(val) => handleInputChange('location', val)}
+            error={errors.location}
           />
 
           <View style={styles.dateContainer}>
             <Text style={styles.label}>Deadline *</Text>
-            <TouchableOpacity style={styles.dateButton} onPress={() => setShowDatePicker(true)}>
-              <Ionicons name="calendar-outline" size={20} color={Colors.gray[600]} />
-              <Text style={styles.dateText}>
+            <TouchableOpacity 
+              style={[styles.dateButton, errors.deadline ? styles.dateButtonError : null]} 
+              onPress={() => setShowDatePicker(true)}
+            >
+              <Ionicons name="calendar-outline" size={20} color={errors.deadline ? Colors.red[500] : Colors.gray[600]} />
+              <Text style={[styles.dateText, errors.deadline ? styles.dateTextError : null]}>
                 {deadline ? deadline.toLocaleDateString() : 'Select Deadline Date'}
               </Text>
             </TouchableOpacity>
+            {errors.deadline && <Text style={styles.fieldErrorText}>{errors.deadline}</Text>}
             {showDatePicker && (
               <DateTimePicker
                 value={deadline || new Date()}
@@ -248,6 +287,7 @@ export default function PostTenderScreen() {
             multiline
             numberOfLines={6}
             containerStyle={{ height: 140 }}
+            error={errors.description}
           />
         </View>
 
@@ -263,6 +303,7 @@ export default function PostTenderScreen() {
             multiline
             numberOfLines={4}
             containerStyle={{ height: 100 }}
+            error={errors.requirements}
           />
         </View>
 
@@ -274,6 +315,7 @@ export default function PostTenderScreen() {
               placeholder="e.g. Acme Corp"
               value={formData.companyName}
               onChangeText={(val) => handleInputChange('companyName', val)}
+              error={errors.companyName}
             />
             <Input
               label="Company Website"
@@ -282,6 +324,7 @@ export default function PostTenderScreen() {
               onChangeText={(val) => handleInputChange('companyWebsite', val)}
               autoCapitalize="none"
               keyboardType="url"
+              error={errors.companyWebsite}
             />
             
             <Text style={styles.label}>Company Logo</Text>
@@ -432,9 +475,20 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     gap: Spacing.sm,
   },
+  dateButtonError: {
+    borderColor: Colors.red[500],
+  },
   dateText: {
     fontSize: FontSizes.base,
     color: Colors.foreground,
+  },
+  dateTextError: {
+    color: Colors.red[600],
+  },
+  fieldErrorText: {
+    fontSize: FontSizes.xs,
+    color: Colors.red[600],
+    marginTop: Spacing.xs,
   },
   filePickerButton: {
     flexDirection: 'row',
