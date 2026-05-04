@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   Pressable,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -15,6 +16,8 @@ import { Colors, Spacing, FontSizes, BorderRadius } from '@/constants/Colors';
 import { TenderCard } from '@/components/TenderCard';
 import { useTenders } from '@/hooks/queries/useTenders';
 import { TenderListParams } from '@/lib/api/tenders';
+import { useSaveTender } from '@/hooks/mutations/useSaveTender';
+import { useAuthState } from '@/hooks/useAuthState';
 
 const SORT_OPTIONS = [
   { label: 'Newest', value: 'newest' },
@@ -44,12 +47,55 @@ export default function TendersScreen() {
 
   const { data: tenders = [], isLoading, isRefetching, refetch, error } = useTenders(params);
   
-  if (error) {
-    console.error('useTenders error:', error);
-  }
-  const onRefresh = useCallback(() => {
-    refetch();
-  }, [refetch]);
+  // --- Save tender logic (ported from web TenderListingPage) ---
+  const authState = useAuthState();
+  const [savedTenders, setSavedTenders] = useState<string[]>([]);
+  const saveTenderMutation = useSaveTender();
+
+  // Sync saved state from API response
+  useEffect(() => {
+    if (tenders.length > 0) {
+      const saved = tenders
+        .filter((t) => t.isSaved)
+        .map((t) => t.id);
+      setSavedTenders(saved);
+    }
+  }, [tenders]);
+
+  const toggleSave = useCallback((tenderId: string) => {
+    if (!authState.isAuthenticated) {
+      Alert.alert(
+        'Sign In Required',
+        'Please sign in to save tenders.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Sign In', onPress: () => router.push('/signin') },
+        ],
+      );
+      return;
+    }
+
+    const isSaved = savedTenders.includes(tenderId);
+    const action = isSaved ? 'unsave' : 'save';
+
+    // Optimistic toggle
+    setSavedTenders((prev) =>
+      isSaved ? prev.filter((id) => id !== tenderId) : [...prev, tenderId],
+    );
+
+    saveTenderMutation.mutate(
+      { id: tenderId, action },
+      {
+        onError: () => {
+          // Rollback on failure
+          setSavedTenders((prev) =>
+            isSaved ? [...prev, tenderId] : prev.filter((id) => id !== tenderId),
+          );
+          Alert.alert('Error', `Unable to ${action} tender. Please try again.`);
+        },
+      },
+    );
+  }, [authState.isAuthenticated, savedTenders, saveTenderMutation, router]);
 
   const renderHeader = () => (
     <View style={styles.headerContainer}>
@@ -128,6 +174,10 @@ export default function TendersScreen() {
     );
   };
 
+  const onRefresh = useCallback(() => {
+    refetch();
+  }, [refetch]);
+
   return (
     <View style={styles.container}>
       <FlatList
@@ -137,6 +187,8 @@ export default function TendersScreen() {
           <TenderCard
             tender={item}
             onPress={() => router.push(`/tender/${item.id}`)}
+            isSaved={savedTenders.includes(item.id)}
+            onToggleSave={toggleSave}
           />
         )}
         ListHeaderComponent={renderHeader}

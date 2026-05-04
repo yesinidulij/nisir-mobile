@@ -8,6 +8,10 @@ import { TenderSummary } from '@/lib/api/tenders';
 interface TenderCardProps {
   tender: TenderSummary;
   onPress?: () => void;
+  /** Whether this tender is saved by the current user (overrides tender.isSaved) */
+  isSaved?: boolean;
+  /** Callback when the bookmark/save button is tapped */
+  onToggleSave?: (tenderId: string) => void;
 }
 
 const formatDate = (date: Date | string) => {
@@ -35,7 +39,8 @@ const getDaysRemaining = (deadline: Date | string) => {
   return `${days} days left`;
 };
 
-export function TenderCard({ tender, onPress }: TenderCardProps) {
+export function TenderCard({ tender, onPress, isSaved: isSavedProp, onToggleSave }: TenderCardProps) {
+  const saved = isSavedProp ?? tender.isSaved ?? false;
   const daysRemaining = getDaysRemaining(tender.deadline);
   const isExpired = daysRemaining === 'Expired';
 
@@ -53,13 +58,27 @@ export function TenderCard({ tender, onPress }: TenderCardProps) {
           <Badge variant={getStatusVariant(tender.status)}>
             {tender.status}
           </Badge>
-          {tender.isSaved && (
-            <Ionicons name="bookmark" size={16} color={Colors.primary[600]} />
-          )}
+          <Text style={[styles.deadline, isExpired && styles.deadlineExpired]}>
+            {daysRemaining}
+          </Text>
         </View>
-        <Text style={[styles.deadline, isExpired && styles.deadlineExpired]}>
-          {daysRemaining}
-        </Text>
+        <Pressable
+          onPress={(e) => {
+            e.stopPropagation?.();
+            onToggleSave?.(tender.id);
+          }}
+          hitSlop={8}
+          style={({ pressed }) => [
+            styles.bookmarkButton,
+            pressed && styles.bookmarkButtonPressed,
+          ]}
+        >
+          <Ionicons
+            name={saved ? 'bookmark' : 'bookmark-outline'}
+            size={22}
+            color={saved ? Colors.primary[600] : Colors.gray[400]}
+          />
+        </Pressable>
       </View>
 
       {/* Title */}
@@ -214,5 +233,12 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.xs,
     color: Colors.gray[600],
     flex: 1,
+  },
+  bookmarkButton: {
+    padding: Spacing.xs,
+    borderRadius: BorderRadius.md,
+  },
+  bookmarkButtonPressed: {
+    backgroundColor: Colors.gray[100],
   },
 });
