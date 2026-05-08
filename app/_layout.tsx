@@ -7,6 +7,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 import Toast from 'react-native-toast-message';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -52,39 +53,41 @@ export default function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider value={NisirTheme}>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen
-            name="(auth)"
-            options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
-          />
-          <Stack.Screen
-            name="tender/[id]"
-            options={{
-              headerShown: true,
-              headerTitle: 'Tender Detail',
-              headerTintColor: '#16a34a',
-              headerBackTitle: 'Back',
-              headerStyle: { backgroundColor: '#fff' },
-              headerShadowVisible: false,
-            }}
-          />
-          <Stack.Screen
-            name="post-tender"
-            options={{
-              headerShown: true,
-              headerTitle: 'Post Tender',
-              headerTintColor: '#16a34a',
-              headerBackTitle: 'Back',
-              headerStyle: { backgroundColor: '#fff' },
-              headerShadowVisible: false,
-            }}
-          />
+      <SafeAreaProvider>
+        <ThemeProvider value={NisirTheme}>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen
+              name="(auth)"
+              options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
+            />
+            <Stack.Screen
+              name="tender/[id]"
+              options={{
+                headerShown: true,
+                headerTitle: 'Tender Detail',
+                headerTintColor: '#16a34a',
+                headerBackTitle: 'Back',
+                headerStyle: { backgroundColor: '#fff' },
+                headerShadowVisible: false,
+              }}
+            />
+            <Stack.Screen
+              name="post-tender"
+              options={{
+                headerShown: true,
+                headerTitle: 'Post Tender',
+                headerTintColor: '#16a34a',
+                headerBackTitle: 'Back',
+                headerStyle: { backgroundColor: '#fff' },
+                headerShadowVisible: false,
+              }}
+            />
 
-        </Stack>
-        <Toast />
-      </ThemeProvider>
+          </Stack>
+          <Toast />
+        </ThemeProvider>
+      </SafeAreaProvider>
     </QueryClientProvider>
   );
 }

@@ -3,20 +3,29 @@ import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import { Platform, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TabLayout() {
-  return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors.primary[600],
-        tabBarInactiveTintColor: Colors.gray[400],
-        tabBarStyle: styles.tabBar,
-        tabBarLabelStyle: styles.tabBarLabel,
-        headerStyle: styles.header,
-        headerTitleStyle: styles.headerTitle,
-        headerShadowVisible: false,
-      }}
-    >
+    const insets = useSafeAreaInsets();
+
+    return (
+      <Tabs
+        screenOptions={{
+          tabBarActiveTintColor: Colors.primary[600],
+          tabBarInactiveTintColor: Colors.gray[400],
+          tabBarStyle: [
+            styles.tabBar,
+            {
+              height: Platform.OS === 'ios' ? 60 + insets.bottom : 64 + insets.bottom,
+              paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
+            }
+          ],
+          tabBarLabelStyle: styles.tabBarLabel,
+          headerStyle: styles.header,
+          headerTitleStyle: styles.headerTitle,
+          headerShadowVisible: false,
+        }}
+      >
       <Tabs.Screen
         name="index"
         options={{
@@ -66,8 +75,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderTopColor: Colors.border,
     borderTopWidth: 1,
-    height: Platform.OS === 'ios' ? 88 : 64,
-    paddingBottom: Platform.OS === 'ios' ? 28 : 8,
     paddingTop: 8,
     elevation: 8,
     shadowColor: '#000',
