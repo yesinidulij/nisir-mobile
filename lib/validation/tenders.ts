@@ -87,7 +87,10 @@ export const createTenderSchema = z.object({
   description: z.string({ message: 'Description is required' }).min(10, { message: 'Description must be at least 10 characters' }),
   categoryId: stringValidator('Category', 2, 120),
   location: stringValidator('Location', 2, 120),
-  deadline: dateValidator('Deadline'),
+  bidClosingDate: dateValidator('Bid Closing Date'),
+  bidOpeningDate: dateValidator('Bid Opening Date').optional().nullable(),
+  bidDocumentPrice: z.string().optional().nullable(),
+  bidBondPrice: z.string().optional().nullable(),
   status: z.enum(statusValues, {
     message: 'Status must be a string',
   }),

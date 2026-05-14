@@ -27,12 +27,16 @@ export default function PostTenderScreen() {
     location: '',
     description: '',
     requirements: '',
+    bidDocumentPrice: '',
+    bidBondPrice: '',
     status: 'DRAFT',
     companyName: '',
     companyWebsite: '',
   });
 
-  const [deadline, setDeadline] = useState<Date | null>(null);
+  const [bidClosingDate, setBidClosingDate] = useState<Date | null>(null);
+  const [bidOpeningDate, setBidOpeningDate] = useState<Date | null>(null);
+  const [activeDateField, setActiveDateField] = useState<'closing' | 'opening' | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [documents, setDocuments] = useState<DocumentPicker.DocumentPickerAsset[]>([]);
   const [companyLogo, setCompanyLogo] = useState<ImagePicker.ImagePickerAsset | null>(null);
@@ -101,14 +105,21 @@ export default function PostTenderScreen() {
   const handleDateChange = (event: any, selectedDate?: Date) => {
     setShowDatePicker(Platform.OS === 'ios');
     if (selectedDate) {
-      setDeadline(selectedDate);
-      if (errors.deadline) {
-        setErrors((prev) => {
-          const newErrors = { ...prev };
-          delete newErrors.deadline;
-          return newErrors;
-        });
+      if (activeDateField === 'closing') {
+        setBidClosingDate(selectedDate);
+        if (errors.bidClosingDate) {
+          setErrors((prev) => {
+            const newErrors = { ...prev };
+            delete newErrors.bidClosingDate;
+            return newErrors;
+          });
+        }
+      } else if (activeDateField === 'opening') {
+        setBidOpeningDate(selectedDate);
       }
+    }
+    if (Platform.OS !== 'ios') {
+      setActiveDateField(null);
     }
   };
 
@@ -147,7 +158,10 @@ export default function PostTenderScreen() {
   const handleSubmit = () => {
     const validationData = {
       ...formData,
-      deadline: deadline,
+      bidClosingDate: bidClosingDate,
+      bidOpeningDate: bidOpeningDate,
+      bidDocumentPrice: formData.bidDocumentPrice || undefined,
+      bidBondPrice: formData.bidBondPrice || undefined,
       requirements: formData.requirements ? formData.requirements.split('\n').filter(Boolean) : [],
     };
 
@@ -177,7 +191,10 @@ export default function PostTenderScreen() {
     payload.append('description', data.description as string);
     payload.append('categoryId', data.categoryId as string);
     payload.append('location', data.location as string);
-    payload.append('deadline', data.deadline.toISOString());
+    payload.append('bidClosingDate', data.bidClosingDate.toISOString());
+    if (data.bidOpeningDate) payload.append('bidOpeningDate', data.bidOpeningDate.toISOString());
+    if (data.bidDocumentPrice) payload.append('bidDocumentPrice', data.bidDocumentPrice);
+    if (data.bidBondPrice) payload.append('bidBondPrice', data.bidBondPrice);
     payload.append('status', data.status);
     payload.append('requirements', JSON.stringify(data.requirements));
 
@@ -257,27 +274,63 @@ export default function PostTenderScreen() {
           />
 
           <View style={styles.dateContainer}>
-            <Text style={styles.label}>Deadline *</Text>
+            <Text style={styles.label}>Bid Closing Date *</Text>
             <TouchableOpacity 
-              style={[styles.dateButton, errors.deadline ? styles.dateButtonError : null]} 
-              onPress={() => setShowDatePicker(true)}
+              style={[styles.dateButton, errors.bidClosingDate ? styles.dateButtonError : null]} 
+              onPress={() => {
+                setActiveDateField('closing');
+                setShowDatePicker(true);
+              }}
             >
-              <Ionicons name="calendar-outline" size={20} color={errors.deadline ? Colors.red[500] : Colors.gray[600]} />
-              <Text style={[styles.dateText, errors.deadline ? styles.dateTextError : null]}>
-                {deadline ? deadline.toLocaleDateString() : 'Select Deadline Date'}
+              <Ionicons name="calendar-outline" size={20} color={errors.bidClosingDate ? Colors.red[500] : Colors.gray[600]} />
+              <Text style={[styles.dateText, errors.bidClosingDate ? styles.dateTextError : null]}>
+                {bidClosingDate ? bidClosingDate.toLocaleDateString() : 'Select Closing Date'}
               </Text>
             </TouchableOpacity>
-            {errors.deadline && <Text style={styles.fieldErrorText}>{errors.deadline}</Text>}
-            {showDatePicker && (
-              <DateTimePicker
-                value={deadline || new Date()}
-                mode="date"
-                display="default"
-                minimumDate={new Date()}
-                onChange={handleDateChange}
-              />
-            )}
+            {errors.bidClosingDate && <Text style={styles.fieldErrorText}>{errors.bidClosingDate}</Text>}
           </View>
+
+          <View style={styles.dateContainer}>
+            <Text style={styles.label}>Bid Opening Date</Text>
+            <TouchableOpacity 
+              style={styles.dateButton} 
+              onPress={() => {
+                setActiveDateField('opening');
+                setShowDatePicker(true);
+              }}
+            >
+              <Ionicons name="calendar-outline" size={20} color={Colors.gray[600]} />
+              <Text style={styles.dateText}>
+                {bidOpeningDate ? bidOpeningDate.toLocaleDateString() : 'Select Opening Date'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {showDatePicker && (
+            <DateTimePicker
+              value={
+                (activeDateField === 'closing' ? bidClosingDate : bidOpeningDate) || new Date()
+              }
+              mode="date"
+              display="default"
+              minimumDate={new Date()}
+              onChange={handleDateChange}
+            />
+          )}
+
+          <Input
+            label="Bid Document Price"
+            placeholder="e.g. 500 ETB"
+            value={formData.bidDocumentPrice}
+            onChangeText={(val) => handleInputChange('bidDocumentPrice', val)}
+          />
+
+          <Input
+            label="Bid Bond Price"
+            placeholder="e.g. 100,000 ETB"
+            value={formData.bidBondPrice}
+            onChangeText={(val) => handleInputChange('bidBondPrice', val)}
+          />
 
           <Input
             label="Detailed Description *"

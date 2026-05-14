@@ -59,7 +59,10 @@ export interface TenderSummary {
   category: TenderCategory;
   location: string;
   comment?: string;
-  deadline: Date;
+  bidClosingDate: Date;
+  bidOpeningDate?: Date;
+  bidDocumentPrice?: string;
+  bidBondPrice?: string;
   publishedAt?: Date;
   closedAt?: string | Date | null;
   status: TenderStatus;
