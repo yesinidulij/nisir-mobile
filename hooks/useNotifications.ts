@@ -22,63 +22,76 @@ export function useNotifications() {
   useEffect(() => {
     // Register for push notifications
     async function setupPushNotifications() {
-      if (!Device.isDevice) {
-        console.log('📱 Push notifications require a physical device');
-        return;
-      }
+      console.log('📱 Starting push notification setup...');
 
-      // Check/request permissions
-      const { status: existingStatus } =
-        await Notifications.getPermissionsAsync();
+      // 1. Check/request permissions (Always do this first)
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
       let finalStatus = existingStatus;
 
+      console.log('📱 Current notification permission status:', existingStatus);
+
       if (existingStatus !== 'granted') {
+        console.log('📱 Requesting notification permissions...');
         const { status } = await Notifications.requestPermissionsAsync();
         finalStatus = status;
       }
 
       if (finalStatus !== 'granted') {
-        console.log('📱 Push notification permission not granted');
+        console.warn('📱 Push notification permission NOT granted');
         return;
       }
 
-      // Get the Expo push token
+      console.log('📱 Permission granted! Checking device type...');
+
+      // 2. Check if physical device
+      if (!Device.isDevice) {
+        console.warn('📱 Note: Push notifications generally require a physical device to receive alerts, but we will try to get a token anyway.');
+      }
+
+      // 3. Get the Expo push token
       try {
         const projectId =
           Constants.expoConfig?.extra?.eas?.projectId ??
           Constants.easConfig?.projectId;
 
-        if (!projectId) {
-          console.warn(
-            '📱 No project ID found. Set extra.eas.projectId in app.json or configure EAS.'
+        console.log('📱 EAS Project ID:', projectId);
+
+        if (!projectId || projectId === "YOUR_EAS_PROJECT_ID") {
+          console.error(
+            '📱 ERROR: No valid EAS Project ID found in app.json. Please replace YOUR_EAS_PROJECT_ID with your actual ID from the Expo dashboard.'
           );
           return;
         }
 
+        console.log('📱 Fetching Expo Push Token...');
         const tokenData = await Notifications.getExpoPushTokenAsync({
           projectId,
         });
         const token = tokenData.data;
-        console.log('📱 Expo push token:', token);
+        console.log('📱 SUCCESS! Expo push token:', token);
 
-        // Register with backend if authenticated
+        // 4. Register with backend if authenticated
+        console.log('📱 Is user authenticated?', isAuthenticated);
         if (isAuthenticated) {
+          console.log('📱 Registering token with backend...');
           try {
             await registerDeviceToken(
               token,
               Device.modelName ?? undefined,
               Platform.OS
             );
-            console.log('📱 Device token registered with backend');
-          } catch (err) {
-            console.error('📱 Failed to register device token:', err);
+            console.log('📱 Device token successfully registered with backend');
+          } catch (err: any) {
+            console.error('📱 Backend registration FAILED:', err?.message || err);
           }
+        } else {
+          console.log('📱 User not authenticated yet, skipping backend registration.');
         }
-      } catch (err) {
-        console.error('📱 Failed to get Expo push token:', err);
+      } catch (err: any) {
+        console.error('📱 Failed to get Expo push token:', err?.message || err);
       }
 
-      // Set up Android notification channel
+      // 5. Set up Android notification channel
       if (Platform.OS === 'android') {
         await Notifications.setNotificationChannelAsync('tenders', {
           name: 'Tenders',
