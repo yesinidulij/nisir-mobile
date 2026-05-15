@@ -31,8 +31,21 @@
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/nisir-icon-circular.png",
+          "color": "#16a34a",
+          "defaultChannel": "tenders"
+        }
+      ]
     ],
+    "extra": {
+      "eas": {
+        "projectId": "c458a578-4951-4cc6-bdbe-59f2b9a47d81"
+      }
+    },
     "experiments": {
       "typedRoutes": true
     }

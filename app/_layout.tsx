@@ -4,10 +4,12 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import * as Notifications from 'expo-notifications';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 import Toast from 'react-native-toast-message';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { useNotifications } from '@/hooks/useNotifications';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -16,6 +18,17 @@ export const unstable_settings = {
 };
 
 SplashScreen.preventAutoHideAsync();
+
+// Configure how notifications appear when the app is in the foreground
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
 
 const queryClient = new QueryClient();
 
@@ -50,6 +63,13 @@ export default function RootLayout() {
   }, [loaded]);
 
   if (!loaded) return null;
+
+  return <RootLayoutNav />;
+}
+
+function RootLayoutNav() {
+  // Set up push notifications
+  useNotifications();
 
   return (
     <QueryClientProvider client={queryClient}>
